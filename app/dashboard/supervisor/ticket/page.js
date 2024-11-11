@@ -171,7 +171,7 @@ export default function TicketDashboard() {
               <div className="rounded-md  bg-white p-6">
                 <h3 className="font-semibold mb-2">Recent Activity</h3>
                 <p className="text-sm text-gray-500 mb-4">
-                  Agent's recent activities.
+                  Agents recent activities.
                 </p>
                 <div className="divide-y">
                   {activities.map((activity, index) => (
