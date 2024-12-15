@@ -1,5 +1,5 @@
 // utils/jwtUtils.js
-import jwtDecode from 'jwt-decode';
+import { decode as jwtDecode } from 'jwt-decode';
 
 export const decodeToken = (token) => {
   try {
