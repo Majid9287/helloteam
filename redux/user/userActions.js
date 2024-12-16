@@ -31,6 +31,7 @@ export const completeUserRegistration = createAsyncThunk(
   'user/completeRegistration',
   async ({ userId, organizationData }, { rejectWithValue }) => {
     try {
+      console.log("completeUserRegistration console",userId, organizationData);
       // Second step - register organization with user ID
       const orgResponse = await AuthService.registerOrganization({
         ...organizationData,

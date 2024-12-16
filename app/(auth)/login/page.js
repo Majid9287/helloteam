@@ -21,7 +21,8 @@ export default function LoginPage() {
   const handleLogin = async (e) => {
     e.preventDefault()
     try {
-      await dispatch(login(credentials)).unwrap()
+      const response=await dispatch(login(credentials)).unwrap()
+      console.log(response);
       router.push('/dashboard')
     } catch (error) {
       console.error('Login failed', error)
