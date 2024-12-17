@@ -6,7 +6,7 @@ import Link from "next/link";
 import * as React from "react";
 import { useSelector } from 'react-redux';
 import TicketCard from "@/components/cards/TicketCard";
-import TicketPageSkeleton from "@/components/skeleton/ticketpage";
+import TicketPageSkeleton from "@/components/skeleton/Ticketpage";
 
 export default function Component() {
   const [activeTab, setActiveTab] = React.useState("all");
