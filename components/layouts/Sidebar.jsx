@@ -20,7 +20,7 @@ const menuItems = {
     { icon: '🎫', label: 'Tickets Details ', href: '/dashboard/supervisor/assign' },
   ],
   client: [
-    { icon: '⊞', label: 'Dashboard', href: '/dashboard/client' },
+    { icon: '⊞', label: 'Dashboard', href: '/dashboard/client/ticket' },
     { icon: '👥', label: 'Agents', href: '/dashboard/client/agent' },
     { icon: '👥', label: 'Supervisors', href: '/dashboard/client/supervisor' },
     { icon: '🎫', label: 'Tickets', href: '/dashboard/client/ticket' },

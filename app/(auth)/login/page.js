@@ -10,7 +10,7 @@ import Image from 'next/image'
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [credentials, setCredentials] = useState({
-    username: '',
+    email: '',
     password: '',
     rememberMe: false
   })
@@ -23,7 +23,7 @@ export default function LoginPage() {
     try {
       const response=await dispatch(login(credentials)).unwrap()
       console.log(response);
-      router.push('/dashboard')
+      router.push('/dashboard/client/ticket')
     } catch (error) {
       console.error('Login failed', error)
       // TODO: Add proper error handling and display
@@ -55,18 +55,18 @@ export default function LoginPage() {
             <div className="space-y-4">
               <div>
                 <label className="text-sm font-medium text-gray-700 flex items-center">
-                  <Mail className="mr-2 h-4 w-4" /> Email or Username
+                  <Mail className="mr-2 h-4 w-4" /> Email
                 </label>
                 <div className="mt-1">
                   <input
                     className="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-orange-500 focus:outline-none focus:ring-orange-500 sm:text-sm"
                     type="text"
-                    value={credentials.username}
+                    value={credentials.email}
                     onChange={(e) => setCredentials({
                       ...credentials, 
-                      username: e.target.value
+                      email: e.target.value
                     })}
-                    placeholder="Enter your email or username"
+                    placeholder="Enter your email "
                     required
                   />
                 </div>
