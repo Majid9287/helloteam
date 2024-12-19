@@ -12,6 +12,7 @@ import {
   Phone,
   Building,
   Key,
+  Loader2,
 } from "lucide-react";
 import {
   registerUserInitial,
