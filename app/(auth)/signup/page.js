@@ -1,80 +1,110 @@
-"use client"
+"use client";
 
-import { useState } from 'react'
-import { useDispatch } from 'react-redux'
-import { useRouter } from 'next/navigation'
-import { Eye, EyeOff, UserPlus, Mail, Lock, Phone, Building, Key } from 'lucide-react'
-import { registerUserInitial, completeUserRegistration } from '../../../redux/user/userActions'
-import Image from 'next/image'
-import Link from 'next/link'
+import { useState } from "react";
+import { useDispatch } from "react-redux";
+import { useRouter } from "next/navigation";
+import {
+  Eye,
+  EyeOff,
+  UserPlus,
+  Mail,
+  Lock,
+  Phone,
+  Building,
+  Key,
+} from "lucide-react";
+import {
+  registerUserInitial,
+  completeUserRegistration,
+} from "../../../redux/user/userActions";
+import Image from "next/image";
+import Link from "next/link";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function RegisterPage() {
-  const [step, setStep] = useState(1)
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [userId, setUserId] = useState(null)
-  const [userData, setUserData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    phoneNumber: '',
-    role: 'client',
-  })
-  const [organizationData, setOrganizationData] = useState({
-    organizationName: '',
-    apiKey: ''
-  })
+  const [step, setStep] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const dispatch = useDispatch()
-  const router = useRouter()
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [userId, setUserId] = useState(null);
+  const [userData, setUserData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    phoneNumber: "",
+    role: "client",
+  });
+  const [organizationData, setOrganizationData] = useState({
+    organizationName: "",
+    apiKey: "",
+  });
+
+  const dispatch = useDispatch();
+  const router = useRouter();
 
   const handleFirstStepValidation = () => {
-    if (!userData.name || !userData.email || !userData.password || !userData.phoneNumber) {
-      alert('Please fill in all required fields')
-      return false
+    if (
+      !userData.name ||
+      !userData.email ||
+      !userData.password ||
+      !userData.phoneNumber
+    ) {
+      alert("Please fill in all required fields");
+      return false;
     }
     if (userData.password !== userData.confirmPassword) {
-      alert('Passwords do not match')
-      return false
+      alert("Passwords do not match");
+      return false;
     }
-    return true
-  }
+    return true;
+  };
 
   const handleFirstStep = async () => {
     if (handleFirstStepValidation()) {
+      setIsLoading(true);
       try {
-        const { confirmPassword, ...submitData } = userData
-        const response = await dispatch(registerUserInitial(submitData)).unwrap()
-        setUserId(response.userId)
-        setStep(2)
+        const { confirmPassword, ...submitData } = userData;
+        const response = await dispatch(
+          registerUserInitial(submitData)
+        ).unwrap();
+        setUserId(response.userId);
+        setStep(2);
+        toast.success("Basic information saved successfully!");
       } catch (error) {
-        console.error('Initial registration failed:', error)
-        alert('Registration failed. Please try again.')
+        toast.error(error.message || "Registration failed. Please try again.");
+      } finally {
+        setIsLoading(false);
       }
     }
-  }
+  };
 
   const handleRegistration = async (e) => {
-    e.preventDefault()
-    
-    if (!organizationData.organizationName       || !organizationData.apiKey) {
-      alert('Please fill in all organization details')
-      return
+    e.preventDefault();
+
+    if (!organizationData.organizationName || !organizationData.apiKey) {
+      toast.error("Please fill in all organization details");
+      return;
     }
 
+    setIsLoading(true);
     try {
-      await dispatch(completeUserRegistration({
-        userId,
-        organizationData
-      })).unwrap()
-      
-      router.push('/login')
+      await dispatch(
+        completeUserRegistration({
+          userId,
+          organizationData,
+        })
+      ).unwrap();
+
+      toast.success("Registration completed successfully!");
+      router.push("/login");
     } catch (error) {
-      console.error('Organization registration failed:', error)
-      alert('Failed to complete registration. Please try again.')
+      toast.error(error.message || "Failed to complete registration");
+    } finally {
+      setIsLoading(false);
     }
-  }
+  };
 
   const renderFirstStep = () => (
     <div className="space-y-4">
@@ -103,7 +133,9 @@ export default function RegisterPage() {
             className="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-orange-500 focus:outline-none focus:ring-orange-500 sm:text-sm"
             type="tel"
             value={userData.phoneNumber}
-            onChange={(e) => setUserData({ ...userData, phoneNumber: e.target.value })}
+            onChange={(e) =>
+              setUserData({ ...userData, phoneNumber: e.target.value })
+            }
             placeholder="Enter your phone number"
             required
           />
@@ -119,7 +151,9 @@ export default function RegisterPage() {
             className="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-orange-500 focus:outline-none focus:ring-orange-500 sm:text-sm"
             type="email"
             value={userData.email}
-            onChange={(e) => setUserData({ ...userData, email: e.target.value })}
+            onChange={(e) =>
+              setUserData({ ...userData, email: e.target.value })
+            }
             placeholder="Enter your email"
             required
           />
@@ -135,7 +169,9 @@ export default function RegisterPage() {
             className="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-orange-500 focus:outline-none focus:ring-orange-500 sm:text-sm"
             type={showPassword ? "text" : "password"}
             value={userData.password}
-            onChange={(e) => setUserData({ ...userData, password: e.target.value })}
+            onChange={(e) =>
+              setUserData({ ...userData, password: e.target.value })
+            }
             placeholder="Create a strong password"
             required
           />
@@ -162,7 +198,9 @@ export default function RegisterPage() {
             className="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-orange-500 focus:outline-none focus:ring-orange-500 sm:text-sm"
             type={showConfirmPassword ? "text" : "password"}
             value={userData.confirmPassword}
-            onChange={(e) => setUserData({ ...userData, confirmPassword: e.target.value })}
+            onChange={(e) =>
+              setUserData({ ...userData, confirmPassword: e.target.value })
+            }
             placeholder="Repeat your password"
             required
           />
@@ -184,13 +222,17 @@ export default function RegisterPage() {
         <button
           type="button"
           onClick={handleFirstStep}
-          className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition"
+          disabled={isLoading}
+          className={`flex items-center justify-center bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition ${
+            isLoading ? "opacity-70 cursor-not-allowed" : ""
+          }`}
         >
-          Next Step
+          {isLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+          {isLoading ? "Processing..." : "Next Step"}
         </button>
       </div>
     </div>
-  )
+  );
 
   const renderSecondStep = () => (
     <div className="space-y-4">
@@ -202,8 +244,13 @@ export default function RegisterPage() {
           <input
             className="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-orange-500 focus:outline-none focus:ring-orange-500 sm:text-sm"
             type="text"
-            value={organizationData.organizationName  }
-            onChange={(e) => setOrganizationData({ ...organizationData, organizationName: e.target.value })}
+            value={organizationData.organizationName}
+            onChange={(e) =>
+              setOrganizationData({
+                ...organizationData,
+                organizationName: e.target.value,
+              })
+            }
             placeholder="Enter organization name"
             required
           />
@@ -219,7 +266,12 @@ export default function RegisterPage() {
             className="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-orange-500 focus:outline-none focus:ring-orange-500 sm:text-sm"
             type="text"
             value={organizationData.apiKey}
-            onChange={(e) => setOrganizationData({ ...organizationData, apiKey: e.target.value })}
+            onChange={(e) =>
+              setOrganizationData({
+                ...organizationData,
+                apiKey: e.target.value,
+              })
+            }
             placeholder="Enter API key"
             required
           />
@@ -227,54 +279,60 @@ export default function RegisterPage() {
       </div>
 
       <div className="flex justify-between">
-       
         <button
           type="button"
           onClick={handleRegistration}
-          className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition"
+          disabled={isLoading}
+          className={`flex items-center justify-center bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition ${
+            isLoading ? "opacity-70 cursor-not-allowed" : ""
+          }`}
         >
-          Complete Registration
+          {isLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+          {isLoading ? "Completing..." : "Complete Registration"}
         </button>
       </div>
     </div>
-  )
+  );
   return (
     <div className="flex min-h-screen bg-gray-50">
       <div className="hidden lg:block lg:w-1/2 relative">
-              <Image
-                src="/login.png"
-                alt="Login background"
-                layout="fill"
-                objectFit="cover"
-                priority
-              />
-            </div>
-      
+        <Image
+          src="/login.png"
+          alt="Login background"
+          layout="fill"
+          objectFit="cover"
+          priority
+        />
+      </div>
+
       <div className="w-full lg:w-1/2 flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
         <div className="w-full max-w-md space-y-8">
           <div className="text-center">
             <h2 className="text-3xl font-bold tracking-tight text-gray-900">
-              {step === 1 ? 'Create Your Account' : 'Complete Your Profile'}
+              {step === 1 ? "Create Your Account" : "Complete Your Profile"}
             </h2>
             <p className="mt-2 text-sm text-gray-600">
-              {step === 1 
-                ? 'Start your journey with basic information' 
-                : 'Just a few more details to get you started'}
+              {step === 1
+                ? "Start your journey with basic information"
+                : "Just a few more details to get you started"}
             </p>
           </div>
-          
+
           <form onSubmit={handleRegistration}>
             {step === 1 ? renderFirstStep() : renderSecondStep()}
           </form>
 
           <p className="text-center text-sm text-gray-600">
             Already have an account?{" "}
-            <Link href="/login" className="font-medium text-orange-500 hover:text-orange-600">
+            <Link
+              href="/login"
+              className="font-medium text-orange-500 hover:text-orange-600"
+            >
               Log in
             </Link>
           </p>
         </div>
       </div>
     </div>
-  )
+  );
 }
