@@ -1,5 +1,5 @@
 import React from "react";
-
+import { Bell, ChevronDown, Menu, Search, UserCircle } from "lucide-react";
 const SupervisorTable = ({ supervisors }) => {
   return (
     <div className="bg-white rounded-lg border">
@@ -14,24 +14,26 @@ const SupervisorTable = ({ supervisors }) => {
 
       {/* Table Body */}
       <div className="divide-y">
-        {supervisors.map((supervisor) => (
+        {supervisors.map((supervisor, id) => (
           <div
-            key={supervisor.id}
+            key={id}
             className="grid grid-cols-5 gap-4 p-4 items-center hover:bg-gray-50"
           >
-            <div>
+            {supervisor.profilePicture ? (
               <img
                 src="/placeholder.svg?height=40&width=40"
                 alt={supervisor.name}
                 className="h-10 w-10 rounded-full"
               />
-            </div>
+            ) : (
+              <UserCircle className="text-gray-500 h-8 w-8" />
+            )}
             <div>
               <div className="font-medium">{supervisor.name}</div>
               <div className="text-sm text-gray-500">{supervisor.email}</div>
             </div>
             <div className="text-gray-600">{supervisor.role}</div>
-            <div className="text-gray-600">{supervisor.date}</div>
+            <div className="text-gray-600">{supervisor.createdAt}</div>
             <div className="flex gap-2 flex-wrap">
               {supervisor.tickets.map((ticket, index) => (
                 <span

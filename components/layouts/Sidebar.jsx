@@ -24,6 +24,7 @@ const menuItems = {
     { icon: '👥', label: 'Agents', href: '/dashboard/client/agent' },
     { icon: '👥', label: 'Supervisors', href: '/dashboard/client/supervisor' },
     { icon: '🎫', label: 'Tickets', href: '/dashboard/client/ticket' },
+    { icon: '⚙️', label: 'Create User', href: '/dashboard/client/create' },
   ],
   agent: [
     { icon: '⊞', label: 'Dashboard', href: '/dashboard/agent' },
