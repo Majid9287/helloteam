@@ -1,5 +1,5 @@
 import React from "react";
-import { Bell, ChevronDown, Menu, Search, UserCircle } from "lucide-react";
+import { Bell, ChevronDown, Menu, Search, UserCircle ,User } from "lucide-react";
 const SupervisorTable = ({ supervisors }) => {
   return (
     <div className="bg-white rounded-lg border">
@@ -26,7 +26,7 @@ const SupervisorTable = ({ supervisors }) => {
                 className="h-10 w-10 rounded-full"
               />
             ) : (
-              <UserCircle className="text-gray-500 h-8 w-8" />
+              <User className="text-gray-500 h-8 w-8" />
             )}
             <div>
               <div className="font-medium">{supervisor.name}</div>

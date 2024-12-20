@@ -7,8 +7,9 @@ import * as React from "react";
 import { useSelector } from 'react-redux';
 import TicketCard from "@/components/cards/TicketCard";
 import TicketPageSkeleton from "@/components/skeleton/Ticketpage";
-
+import { TokenService } from '@/lib/tokenService';
 export default function Component() {
+  const token = TokenService.getAccessToken();
   const [activeTab, setActiveTab] = React.useState("all");
   const [tickets, setTickets] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
@@ -34,10 +35,11 @@ console.log("organizationId by me",organizationId);
         `https://helloteam-backend.vercel.app/api/tickets/organization/${organizationId}`
       );
       const data = await response.json();
+      console.log(data.data.tickets)
       if (data.status === "success") {
         setTickets(data.data.tickets);
       } else {
-        throw new Error("Failed to fetch tickets");
+       // throw new Error("Failed to fetch tickets");
       }
     } catch (err) {
       setError(err.message);
@@ -165,11 +167,13 @@ console.log("organizationId by me",organizationId);
             <TicketCard
               key={`${ticket._id}-${ticket.tree_id}-${index}`}
               ticket={ticket}
+              organizationId={organizationId}
+              token={token}
             />
           ))}
         </div>
       </div>
-      <div className="flex items-center justify-end gap-2">
+      {/* <div className="flex items-center justify-end gap-2">
         <button className="rounded-md px-3 py-2 text-sm text-gray-500 hover:bg-gray-100">
           Previous
         </button>
@@ -182,7 +186,7 @@ console.log("organizationId by me",organizationId);
         <button className="rounded-md px-3 py-2 text-sm text-gray-500 hover:bg-gray-100">
           Next
         </button>
-      </div>
+      </div> */}
     </main>
   );
 }
