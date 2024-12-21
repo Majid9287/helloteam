@@ -5,6 +5,8 @@ module.exports = {
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
+  
+  darkMode: 'selector',
   theme: {
     extend: {
       colors: {
@@ -13,6 +15,6 @@ module.exports = {
       },
     },
   },
-  darkMode: 'false',
+ 
   plugins: [],
 };
