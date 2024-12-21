@@ -1,6 +1,11 @@
 import React from "react";
-import { Bell, ChevronDown, Menu, Search, UserCircle ,User } from "lucide-react";
+import { User } from "lucide-react";
+
 const SupervisorTable = ({ supervisors }) => {
+  const truncateTicket = (ticket) => {
+    return ticket.length > 10 ? `${ticket.substring(0, 10)}...` : ticket;
+  };
+
   return (
     <div className="bg-white rounded-lg border">
       {/* Table Header */}
@@ -19,15 +24,20 @@ const SupervisorTable = ({ supervisors }) => {
             key={id}
             className="grid grid-cols-5 gap-4 p-4 items-center hover:bg-gray-50"
           >
-            {supervisor.profilePicture ? (
-              <img
-                src="/placeholder.svg?height=40&width=40"
-                alt={supervisor.name}
-                className="h-10 w-10 rounded-full"
-              />
-            ) : (
-              <User className="text-gray-500 h-8 w-8" />
-            )}
+            <div>
+              {supervisor.profilePicture ? (
+                <img
+                  src="/placeholder.svg?height=40&width=40"
+                  alt={supervisor.name}
+                  className="h-10 w-10 rounded-full object-cover"
+                />
+              ) : (
+                <div className="h-10 w-10 bg-gray-100 rounded-full flex items-center justify-center">
+                  <User className="text-gray-500 h-6 w-6" />
+                </div>
+              )}
+            </div>
+
             <div>
               <div className="font-medium">{supervisor.name}</div>
               <div className="text-sm text-gray-500">{supervisor.email}</div>
@@ -38,9 +48,10 @@ const SupervisorTable = ({ supervisors }) => {
               {supervisor.tickets.map((ticket, index) => (
                 <span
                   key={index}
+                  title={ticket} // Show full ticket ID on hover
                   className="px-2 py-1 bg-gray-100 rounded text-sm text-gray-600"
                 >
-                  {ticket}
+                  {truncateTicket(ticket)}
                 </span>
               ))}
             </div>

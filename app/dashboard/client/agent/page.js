@@ -36,6 +36,7 @@ export default function Component() {
       );
       console.log(response.data)
       setSupervisors(response.data.docs.users);
+      
       setPagination({
         currentPage: response.data.docs.pagination.currentPage,
         totalPages: response.data.docs.pagination.totalPages,
