@@ -165,7 +165,7 @@ export default function TicketCard({ ticket: initialTicket, organizationId, toke
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium">Priority: {ticket.priority}</span>
             <Link 
-              href={`#`}
+              href={`/dashboard/client/ticket/${ticket._id}`}
               className="text-sm font-medium text-orange-500 hover:text-orange-600"
             >
               Open Ticket
