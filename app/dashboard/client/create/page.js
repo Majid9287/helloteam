@@ -16,7 +16,7 @@ export default function Component() {
     name: '',
     email: '',
     password: '',
-    role: 'supervisor'
+    role: 'agent'
   });
   const [loading, setLoading] = useState(false);
   const [showUserTypeDropdown, setShowUserTypeDropdown] = useState(false);
