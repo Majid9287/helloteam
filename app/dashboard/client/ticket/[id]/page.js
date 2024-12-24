@@ -101,6 +101,7 @@ export default function SessionDetails() {
     )
   }
 
+  
   const renderDetails = () => {
     if (loading) return renderSkeletonDetails()
     if (!selectedItem) return <div className='flex justify-center text-center pt-2 pl-4'><p>Select an item to view details</p></div>
