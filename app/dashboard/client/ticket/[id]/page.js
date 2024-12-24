@@ -101,7 +101,7 @@ export default function SessionDetails() {
     )
   }
 
-  
+
   const renderDetails = () => {
     if (loading) return renderSkeletonDetails()
     if (!selectedItem) return <div className='flex justify-center text-center pt-2 pl-4'><p>Select an item to view details</p></div>
@@ -161,7 +161,7 @@ export default function SessionDetails() {
             type="button"
             className={`flex-1 py-4 px-6 text-center font-bold ${
               activeTab === "notes"
-                ? "bg-orange-300 text-white"
+                ? "bg-orange-500 text-white"
                 : "bg-gray-100 text-gray-700"
             }`}
             onClick={() => setActiveTab("notes")}
@@ -172,7 +172,7 @@ export default function SessionDetails() {
             type="button"
             className={`flex-1 py-4 px-6 text-center font-bold ${
               activeTab === "forms"
-                ? "bg-orange-300 text-white"
+                ? "bg-orange-500 text-white"
                 : "bg-gray-100 text-gray-700"
             }`}
             onClick={() => setActiveTab("forms")}
