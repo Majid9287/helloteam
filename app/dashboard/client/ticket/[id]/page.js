@@ -3,6 +3,31 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 
+const scrollbarStyles = `
+  /* Webkit browsers like Chrome, Safari */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+  }
+
+  /* Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #c1c1c1 #f1f1f1;
+  }
+`
+
 export default function SessionDetails() {
   const { id } = useParams()
   const [activeTab, setActiveTab] = useState('notes')
@@ -48,19 +73,19 @@ export default function SessionDetails() {
   const renderPagination = (data) => {
     if (!data) return null
     return (
-      <div className="flex justify-center mt-4">
+      <div className="flex justify-center items-center mt-6 mb-4">
         <button 
           onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
           disabled={currentPage === 1}
-          className="px-4 py-2 mr-2 bg-blue-500 text-white rounded disabled:bg-gray-300"
+          className="px-4 py-2 mr-2 bg-blue-600 text-white rounded-md disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors duration-200 hover:bg-blue-700"
         >
           Previous
         </button>
-        <span className="px-4 py-2">Page {currentPage} of {data.totalPages}</span>
+        <span className="text-gray-700">Page {currentPage} of {data.totalPages}</span>
         <button 
-          onClick={() => setCurrentPage(prev => prev + 1)}
+          onClick={() => setCurrentPage(prev => Math.min(prev + 1, data.totalPages))}
           disabled={currentPage === data.totalPages}
-          className="px-4 py-2 ml-2 bg-blue-500 text-white rounded disabled:bg-gray-300"
+          className="px-4 py-2 ml-2 bg-blue-600 text-white rounded-md disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors duration-200 hover:bg-blue-700"
         >
           Next
         </button>
@@ -70,13 +95,22 @@ export default function SessionDetails() {
 
   const renderNotes = () => {
     if (loading) return renderSkeletonList()
-    if (!notesData || notesData.notes.length === 0) return <p>No notes available.</p>
+    if (!notesData || notesData.notes.length === 0) return <p className="text-center text-gray-500 mt-4">No notes available.</p>
     return (
       <div>
         {notesData.notes.map((note, index) => (
-          <div key={index} onClick={() => handleItemClick(note)} className="p-4 border-b cursor-pointer hover:bg-gray-100">
-            <h3 className="font-bold">{note.title || 'Untitled Note'}</h3>
-            <p>{note.content.substring(0, 100)}...</p>
+          <div 
+            key={index} 
+            onClick={() => handleItemClick(note)} 
+            className={`p-4 border-b border-gray-200 cursor-pointer transition-colors duration-200 ${
+              selectedItem && selectedItem._id === note._id 
+                ? 'bg-blue-50' 
+                : 'hover:bg-gray-50'
+            }`}
+          >
+            <h3 className="font-semibold text-lg text-gray-800">{note.title || 'Untitled Note'}</h3>
+            <p className="text-gray-600 mt-1">{note.content.substring(0, 100)}...</p>
+            <p className="text-sm text-gray-400 mt-2">Created: {new Date(note.createdAt).toLocaleString()}</p>
           </div>
         ))}
         {renderPagination(notesData)}
@@ -86,14 +120,34 @@ export default function SessionDetails() {
 
   const renderForms = () => {
     if (loading) return renderSkeletonList()
-    if (!formsData || formsData.formData.length === 0) return <p>No forms available.</p>
+    if (!formsData || formsData.formData.length === 0) return <p className="text-center text-gray-500 mt-4">No forms available.</p>
     return (
       <div>
         {formsData.formData.map((form, index) => (
-          <div key={index} onClick={() => handleItemClick(form)} className="p-4 border-b cursor-pointer hover:bg-gray-100">
-            <h3 className="font-bold">{form.agent}</h3>
-            <p>Session ID: {form.session_id}</p>
-            <p>Created At: {new Date(form.createdAt).toLocaleString()}</p>
+          <div 
+            key={index} 
+            onClick={() => handleItemClick(form)} 
+            className={`p-4 border-b border-gray-200 cursor-pointer transition-colors duration-200 ${
+              selectedItem && selectedItem._id === form._id 
+                ? 'bg-blue-50' 
+                : 'hover:bg-gray-50'
+            }`}
+          >
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="font-semibold text-lg text-gray-800">{form.agent}</h3>
+                <p className="text-sm text-gray-600 mt-1">Session ID: {form.session_id}</p>
+                {form.form_data.Client_name && (
+                  <p className="text-sm text-gray-600 mt-1">
+                    Client: {form.form_data.Client_name}
+                  </p>
+                )}
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-gray-500">{new Date(form.createdAt).toLocaleDateString()}</p>
+                <p className="text-sm text-gray-500 mt-1">Duration: {form.duration_seconds}s</p>
+              </div>
+            </div>
           </div>
         ))}
         {renderPagination(formsData)}
@@ -101,26 +155,76 @@ export default function SessionDetails() {
     )
   }
 
+  const renderFormDataField = (key, value) => {
+    if (key === 'op') return null
+
+    const formattedKey = key
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ')
+
+    return (
+      <div key={key} className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-1">{formattedKey}</label>
+        <div className="mt-1 p-3 bg-gray-50 rounded-md border border-gray-200 text-gray-800">
+          {typeof value === 'string' ? value : JSON.stringify(value, null, 2)}
+        </div>
+      </div>
+    )
+  }
 
   const renderDetails = () => {
     if (loading) return renderSkeletonDetails()
-    if (!selectedItem) return <div className='flex justify-center text-center pt-2 pl-4'><p>Select an item to view details</p></div>
+    if (!selectedItem) return <div className='flex justify-center items-center h-full text-gray-500'>Select an item to view details</div>
+
     return (
-      <div className="p-4">
-        <h2 className="text-xl font-bold mb-4">Details</h2>
+      <div className="p-6 bg-white rounded-lg shadow-sm ">
+        <div className="mb-6 pb-4 border-b border-gray-200">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">{selectedItem.agent || selectedItem.title || 'Details'}</h2>
+          <div className="text-sm text-gray-600">
+            {selectedItem.session_id && <p>Session ID: {selectedItem.session_id}</p>}
+            <p>Created: {new Date(selectedItem.createdAt).toLocaleString()}</p>
+          </div>
+        </div>
+
         {activeTab === 'notes' ? (
-          <>
-            <h3 className="font-bold">{selectedItem.title || 'Untitled Note'}</h3>
-            <p>{selectedItem.content}</p>
-          </>
+          <div className="prose max-w-none">
+            <h3 className="text-xl font-semibold text-gray-800 mb-3">{selectedItem.title || 'Untitled Note'}</h3>
+            <p className="text-gray-700 whitespace-pre-wrap">{selectedItem.content}</p>
+          </div>
         ) : (
-          <>
-            <h3 className="font-bold">{selectedItem.agent}</h3>
-            <p>Session ID: {selectedItem.session_id}</p>
-            <p>Created At: {new Date(selectedItem.createdAt).toLocaleString()}</p>
-            <h4 className="font-bold mt-4">Form Data:</h4>
-            <pre>{JSON.stringify(selectedItem.form_data, null, 2)}</pre>
-          </>
+          <div>
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">Session Information</h3>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-gray-600">Duration:</span>
+                  <span className="ml-2 text-gray-800">{selectedItem.duration_seconds}s</span>
+                </div>
+                <div>
+                  <span className="text-gray-600">Resolution:</span>
+                  <span className="ml-2 text-gray-800">{selectedItem.resolution_state}</span>
+                </div>
+                <div>
+                  <span className="text-gray-600">Score:</span>
+                  <span className="ml-2 text-gray-800">{selectedItem.total_score}</span>
+                </div>
+                <div>
+                  <span className="text-gray-600">Source:</span>
+                  <span className="ml-2 text-gray-800">{selectedItem.source}</span>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 ">Form Data</h3>
+              <div className="space-y-4">
+                {Object.entries(selectedItem.form_data || {}).map(([key, value]) => 
+                  renderFormDataField(key, value)
+                )}
+              </div>
+            </div>
+          </div>
         )}
       </div>
     )
@@ -128,11 +232,12 @@ export default function SessionDetails() {
 
   const renderSkeletonList = () => {
     return (
-      <div>
+      <div className="animate-pulse">
         {[...Array(5)].map((_, index) => (
-          <div key={index} className="p-4 border-b">
-            <div className="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+          <div key={index} className="p-4 border-b border-gray-200">
+            <div className="h-5 bg-gray-200 rounded w-3/4 mb-2"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+            <div className="h-3 bg-gray-200 rounded w-1/4"></div>
           </div>
         ))}
       </div>
@@ -141,53 +246,58 @@ export default function SessionDetails() {
 
   const renderSkeletonDetails = () => {
     return (
-      <div className="p-4">
-        <div className="h-8 bg-gray-200 rounded w-1/2 mb-4"></div>
-        <div className="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
-        <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
-        <div className="h-4 bg-gray-200 rounded w-2/3 mb-2"></div>
-        <div className="h-20 bg-gray-200 rounded w-full mt-4"></div>
+      <div className="p-6 animate-pulse">
+        <div className="h-8 bg-gray-200 rounded w-3/4 mb-4"></div>
+        <div className="h-4 bg-gray-200 rounded w-1/2 mb-6"></div>
+        <div className="space-y-4">
+          <div className="h-4 bg-gray-200 rounded w-full"></div>
+          <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+          <div className="h-4 bg-gray-200 rounded w-4/6"></div>
+        </div>
       </div>
     )
   }
 
-  if (error) return <div className="text-red-500 p-8">{error}</div>
+  if (error) return <div className="text-red-500 p-8 text-center">{error}</div>
 
   return (
-    <div className="flex h-screen">
-      <div className="w-3/4 h-full overflow-auto">
-        <div className="flex pb-10">
-          <button
-            type="button"
-            className={`flex-1 py-4 px-6 text-center font-bold ${
-              activeTab === "notes"
-                ? "bg-orange-500 text-white"
-                : "bg-gray-100 text-gray-700"
-            }`}
-            onClick={() => setActiveTab("notes")}
-          >
-            Session Notes
-          </button>
-          <button
-            type="button"
-            className={`flex-1 py-4 px-6 text-center font-bold ${
-              activeTab === "forms"
-                ? "bg-orange-500 text-white"
-                : "bg-gray-100 text-gray-700"
-            }`}
-            onClick={() => setActiveTab("forms")}
-          >
-            Session Forms
-          </button>
+    <>
+      <style jsx global>{scrollbarStyles}</style>
+      <div className="flex h-screen bg-gray-100">
+        <div className="w-3/4 h-full overflow-auto bg-white shadow-md">
+          <div className="flex border-b border-gray-200">
+            <button
+              type="button"
+              className={`flex-1 py-4 px-6 text-center font-semibold text-sm transition-colors duration-200 ${
+                activeTab === "notes"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+              onClick={() => setActiveTab("notes")}
+            >
+              Session Notes
+            </button>
+            <button
+              type="button"
+              className={`flex-1 py-4 px-6 text-center font-semibold text-sm transition-colors duration-200 ${
+                activeTab === "forms"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+              onClick={() => setActiveTab("forms")}
+            >
+              Session Forms
+            </button>
+          </div>
+          <div className="p-4">
+            {activeTab === 'notes' ? renderNotes() : renderForms()}
+          </div>
         </div>
-        <div className="p-8">
-          {activeTab === 'notes' ? renderNotes() : renderForms()}
+        <div className="w-1/4 h-full overflow-auto bg-gray-50 border-l border-gray-200">
+          {renderDetails()}
         </div>
       </div>
-      <div className="w-1/4 border-l">
-        {renderDetails()}
-      </div>
-    </div>
+    </>
   )
 }
 

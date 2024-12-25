@@ -31,7 +31,7 @@ export default function LoginPage() {
       router.push('/dashboard/client/ticket')
     } catch (error) {
       toast.error(error.message || 'Login failed. Please try again.')
-      console.error('Login failed', error)
+      // console.error('Login failed', error)
     } finally {
       setIsLoading(false)
     }
