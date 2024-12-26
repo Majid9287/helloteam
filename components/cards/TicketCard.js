@@ -5,19 +5,26 @@ import Link from "next/link"
 import Image from "next/image"
 import { User, Edit } from 'lucide-react'
 import axios from 'axios'
-import { toast, Toaster } from 'react-hot-toast'
+import { toast} from 'react-hot-toast'
 
 export default function TicketCard({ ticket: initialTicket, organizationId, token }) {
   const [ticket, setTicket] = useState(initialTicket)
   const [showAgentList, setShowAgentList] = useState(false)
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false)
+  const [showPriorityDropdown, setShowPriorityDropdown] = useState(false)
   const [agents, setAgents] = useState([])
   const [loading, setLoading] = useState(false)
   const agentListRef = useRef(null)
+  const statusDropdownRef = useRef(null)
+  const priorityDropdownRef = useRef(null)
 
+  const statusOptions = ["new", "in_progress", "resolved", "closed"]
+  const priorityOptions = ["low", "medium", "high", "urgent"]
   const statusColors = {
     new: "bg-blue-400",
     in_progress: "bg-orange-400",
-    resolved: "bg-green-400"
+    resolved: "bg-green-400",
+    closed: "bg-gray-400"
   }
 
   useEffect(() => {
@@ -34,6 +41,12 @@ export default function TicketCard({ ticket: initialTicket, organizationId, toke
     const handleClickOutside = (event) => {
       if (agentListRef.current && !agentListRef.current.contains(event.target)) {
         setShowAgentList(false)
+      }
+      if (statusDropdownRef.current && !statusDropdownRef.current.contains(event.target)) {
+        setShowStatusDropdown(false)
+      }
+      if (priorityDropdownRef.current && !priorityDropdownRef.current.contains(event.target)) {
+        setShowPriorityDropdown(false)
       }
     }
 
@@ -76,9 +89,7 @@ export default function TicketCard({ ticket: initialTicket, organizationId, toke
           }
         }
       )
-      console.log("Agent assigned:", response.data)
       const updatedTicket = response.data.docs
-      
       setTicket(updatedTicket)
       setShowAgentList(false)
       toast.success(`Agent assigned successfully: ${updatedTicket.assigned_agent.name}`)
@@ -88,9 +99,52 @@ export default function TicketCard({ ticket: initialTicket, organizationId, toke
     }
   }
 
+  const updateStatus = async (newStatus) => {
+    try {
+      const response = await axios.patch(
+        `https://helloteam-backend.vercel.app/api/tickets/${ticket._id}/status`,
+        { status: newStatus },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      )
+      const updatedTicket = response.data.docs
+      setTicket(updatedTicket)
+      setShowStatusDropdown(false)
+      toast.success(`Status updated to ${newStatus}`)
+    } catch (error) {
+      console.error("Error updating status:", error)
+      toast.error("Failed to update status. Please try again.")
+    }
+  }
+
+  const updatePriority = async (newPriority) => {
+    try {
+      const response = await axios.patch(
+        `https://helloteam-backend.vercel.app/api/tickets/${ticket._id}/priority`,
+        { priority: newPriority },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      )
+      const updatedTicket = response.data.docs
+      setTicket(updatedTicket)
+      setShowPriorityDropdown(false)
+      toast.success(`Priority updated to ${newPriority}`)
+    } catch (error) {
+      console.error("Error updating priority:", error)
+      toast.error("Failed to update priority. Please try again.")
+    }
+  }
+
   return (
     <>
-      
       <div className="border rounded-lg p-6 space-y-4 my-2">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2">
@@ -99,14 +153,10 @@ export default function TicketCard({ ticket: initialTicket, organizationId, toke
           </div>
           <span className="text-sm text-gray-500">Created at {new Date(ticket.createdAt).toLocaleString()}</span>
         </div>
-        
         <div className="space-y-2">
           <h3 className="font-medium">{ticket.tree_name}</h3>
           <p className="text-gray-600 text-sm">{ticket.notes || "No description available."}</p>
         </div>
-
-        
-
         <div className="flex items-center justify-between pt-2">
           <div className="flex items-center gap-2 relative">
             {ticket.assigned_agent ? (
@@ -143,7 +193,7 @@ export default function TicketCard({ ticket: initialTicket, organizationId, toke
             )}
             {showAgentList && (
               <div ref={agentListRef} className="absolute top-full left-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
-                <div className="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
+                <div className="py-1">
                   {loading ? (
                     <div className="px-4 py-2 text-sm text-gray-700">Loading...</div>
                   ) : (
@@ -152,7 +202,6 @@ export default function TicketCard({ ticket: initialTicket, organizationId, toke
                         key={agent._id}
                         onClick={() => assignAgent(agent._id)}
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 w-full text-left"
-                        role="menuitem"
                       >
                         {agent.name}
                       </button>
@@ -163,7 +212,48 @@ export default function TicketCard({ ticket: initialTicket, organizationId, toke
             )}
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">Priority: {ticket.priority}</span>
+            <div className="relative">
+              <button
+                onClick={() => setShowStatusDropdown(!showStatusDropdown)}
+                className="text-sm font-medium text-gray-700 bg-gray-100 px-2 py-1 rounded hover:bg-gray-200"
+              >
+                Status: {ticket.status}
+              </button>
+              {showStatusDropdown && (
+                <div ref={statusDropdownRef} className="absolute top-full left-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+                  {statusOptions.map((status) => (
+                    <button
+                      key={status}
+                      onClick={() => updateStatus(status)}
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 w-full text-left"
+                    >
+                      {status}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="relative">
+              <button
+                onClick={() => setShowPriorityDropdown(!showPriorityDropdown)}
+                className="text-sm font-medium text-gray-700 bg-gray-100 px-2 py-1 rounded hover:bg-gray-200"
+              >
+                Priority: {ticket.priority}
+              </button>
+              {showPriorityDropdown && (
+                <div ref={priorityDropdownRef} className="absolute top-full left-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+                  {priorityOptions.map((priority) => (
+                    <button
+                      key={priority}
+                      onClick={() => updatePriority(priority)}
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 w-full text-left"
+                    >
+                      {priority}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             <Link 
               href={`/dashboard/client/ticket/${ticket._id}`}
               className="text-sm font-medium text-orange-500 hover:text-orange-600"
