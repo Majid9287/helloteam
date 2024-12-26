@@ -4,8 +4,8 @@ import React, { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { User, Edit } from 'lucide-react'
-import axios from 'axios'
-import { toast} from 'react-hot-toast'
+import { toast } from 'react-hot-toast'
+import { TicketService } from '@/lib/api'
 
 export default function TicketCard({ ticket: initialTicket, organizationId, token }) {
   const [ticket, setTicket] = useState(initialTicket)
@@ -14,6 +14,9 @@ export default function TicketCard({ ticket: initialTicket, organizationId, toke
   const [showPriorityDropdown, setShowPriorityDropdown] = useState(false)
   const [agents, setAgents] = useState([])
   const [loading, setLoading] = useState(false)
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
+  const [confirmAction, setConfirmAction] = useState(null)
+  const [confirmLoading, setConfirmLoading] = useState(false)
   const agentListRef = useRef(null)
   const statusDropdownRef = useRef(null)
   const priorityDropdownRef = useRef(null)
@@ -59,16 +62,8 @@ export default function TicketCard({ ticket: initialTicket, organizationId, toke
   const fetchAgents = async () => {
     setLoading(true)
     try {
-      const response = await axios.get(
-        `https://helloteam-backend.vercel.app/api/users/${organizationId}?role=agent&page=1&limit=10`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      )
-      setAgents(response.data.docs.users)
+      const agents = await TicketService.getAgents(organizationId)
+      setAgents(agents)
     } catch (error) {
       console.error("Error fetching agents:", error)
       toast.error("Failed to fetch agents. Please try again.")
@@ -78,69 +73,60 @@ export default function TicketCard({ ticket: initialTicket, organizationId, toke
   }
 
   const assignAgent = async (agentId) => {
-    try {
-      const response = await axios.put(
-        `https://helloteam-backend.vercel.app/api/tickets/${ticket._id}/assign`,
-        { agentId },
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      )
-      const updatedTicket = response.data.docs
-      setTicket(updatedTicket)
-      setShowAgentList(false)
-      toast.success(`Agent assigned successfully: ${updatedTicket.assigned_agent.name}`)
-    } catch (error) {
-      console.error("Error assigning agent:", error)
-      toast.error("Failed to assign agent. Please try again.")
-    }
+    setConfirmAction(() => async () => {
+      setConfirmLoading(true)
+      try {
+        const updatedTicket = await TicketService.assignAgent(ticket._id, agentId)
+        setTicket(updatedTicket)
+        setShowAgentList(false)
+        toast.success(`Agent assigned successfully: ${updatedTicket.assigned_agent.name}`)
+      } catch (error) {
+        console.error("Error assigning agent:", error)
+        toast.error("Failed to assign agent. Please try again.")
+      } finally {
+        setConfirmLoading(false)
+        setShowConfirmModal(false)
+      }
+    })
+    setShowConfirmModal(true)
   }
 
   const updateStatus = async (newStatus) => {
-    try {
-      const response = await axios.patch(
-        `https://helloteam-backend.vercel.app/api/tickets/${ticket._id}/status`,
-        { status: newStatus },
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      )
-      const updatedTicket = response.data.docs
-      setTicket(updatedTicket)
-      setShowStatusDropdown(false)
-      toast.success(`Status updated to ${newStatus}`)
-    } catch (error) {
-      console.error("Error updating status:", error)
-      toast.error("Failed to update status. Please try again.")
-    }
+    setConfirmAction(() => async () => {
+      setConfirmLoading(true)
+      try {
+        const updatedTicket = await TicketService.updateStatus(ticket._id, newStatus)
+        setTicket(updatedTicket)
+        setShowStatusDropdown(false)
+        toast.success(`Status updated to ${newStatus}`)
+      } catch (error) {
+        console.error("Error updating status:", error)
+        toast.error("Failed to update status. Please try again.")
+      } finally {
+        setConfirmLoading(false)
+        setShowConfirmModal(false)
+      }
+    })
+    setShowConfirmModal(true)
   }
 
   const updatePriority = async (newPriority) => {
-    try {
-      const response = await axios.patch(
-        `https://helloteam-backend.vercel.app/api/tickets/${ticket._id}/priority`,
-        { priority: newPriority },
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      )
-      const updatedTicket = response.data.docs
-      setTicket(updatedTicket)
-      setShowPriorityDropdown(false)
-      toast.success(`Priority updated to ${newPriority}`)
-    } catch (error) {
-      console.error("Error updating priority:", error)
-      toast.error("Failed to update priority. Please try again.")
-    }
+    setConfirmAction(() => async () => {
+      setConfirmLoading(true)
+      try {
+        const updatedTicket = await TicketService.updatePriority(ticket._id, newPriority)
+        setTicket(updatedTicket)
+        setShowPriorityDropdown(false)
+        toast.success(`Priority updated to ${newPriority}`)
+      } catch (error) {
+        console.error("Error updating priority:", error)
+        toast.error("Failed to update priority. Please try again.")
+      } finally {
+        setConfirmLoading(false)
+        setShowConfirmModal(false)
+      }
+    })
+    setShowConfirmModal(true)
   }
 
   return (
@@ -171,10 +157,10 @@ export default function TicketCard({ ticket: initialTicket, organizationId, toke
                   />
                 ) : (
                   <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
-                    <span className="text-gray-600 text-xs">{ticket.assigned_agent.name.charAt(0).toUpperCase()}</span>
+                    <span className="text-gray-600 text-xs">{ticket?.assigned_agent?.name?.charAt(0).toUpperCase()}</span>
                   </div>
                 )}
-                <span className="text-sm font-medium">{ticket.assigned_agent.name}</span>
+                <span className="text-sm font-medium">{ticket?.assigned_agent?.name}</span>
                 <button
                   onClick={() => setShowAgentList(!showAgentList)}
                   className="ml-2 text-gray-500 hover:text-gray-700"
@@ -203,7 +189,7 @@ export default function TicketCard({ ticket: initialTicket, organizationId, toke
                         onClick={() => assignAgent(agent._id)}
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 w-full text-left"
                       >
-                        {agent.name}
+                        {agent?.name}
                       </button>
                     ))
                   )}
@@ -263,6 +249,30 @@ export default function TicketCard({ ticket: initialTicket, organizationId, toke
           </div>
         </div>
       </div>
+      {showConfirmModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg">
+            <h3 className="text-lg font-medium mb-4">Are you sure you want to make this change?</h3>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded hover:bg-gray-200"
+                disabled={confirmLoading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmAction}
+                className="px-4 py-2 text-sm font-medium text-white bg-orange-500 rounded hover:bg-orange-600"
+                disabled={confirmLoading}
+              >
+                {confirmLoading ? 'Confirming...' : 'Confirm'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }
+
