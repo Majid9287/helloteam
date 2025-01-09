@@ -26,7 +26,7 @@ export default function Component() {
     setLoading(true);
     try {
       const response = await axios.get(
-        `https://helloteam-backend.vercel.app/api/users/${organizationId}?role=supervisor&page=${page}&limit=${pagination.limit}&search=${searchQuery}`,
+        `https://helloteam-backend.onrender.com/api/users/${organizationId}?role=supervisor&page=${page}&limit=${pagination.limit}&search=${searchQuery}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,

@@ -32,7 +32,7 @@ console.log("organizationId by me",organizationId);
     setLoading(true);
     try {
       const response = await fetch(
-        `https://helloteam-backend.vercel.app/api/tickets/organization/${organizationId}`
+        `https://helloteam-backend.onrender.com/api/tickets/organization/${organizationId}`
       );
       const data = await response.json();
       console.log(data.data.tickets)

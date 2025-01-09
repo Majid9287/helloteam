@@ -34,7 +34,7 @@ export default function Component() {
 
     try {
       const response = await axios.post(
-        `https://helloteam-backend.vercel.app/api/users/${organizationId}/create`,
+        `https://helloteam-backend.onrender.com/api/users/${organizationId}/create`,
         formData,
         {
           headers: {
